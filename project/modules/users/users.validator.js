@@ -10,3 +10,26 @@
 // Hatırlatma: "bu e-posta zaten kayıtlı" kontrolü bir doğrulama değil,
 // bir iş kuralıdır — ve 400 değil 409 döner. Onu service/controller
 // tarafında çözmek daha doğru.
+
+import {T} from '../../utils/typeCheckClass.js'
+
+export const validateAddUser = (req, res, next) => {
+  const typeLayout = T.Object({
+    username: T.String,
+    email: T.String,
+    password: T.String
+  });
+  const result = typeLayout.check(req.body);
+  // break the chain
+  if (!result.ok) {
+    res.status(400).json({ error: result.error.message });
+    return;
+  }
+  const val = result.ok;
+  // '@' check
+  if (!val.email.includes('@')) {
+    res.status(400).json({ error: "email must contain '@'" });
+    return;
+  }
+  next()
+}

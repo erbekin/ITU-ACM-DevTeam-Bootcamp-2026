@@ -16,3 +16,49 @@
 // DİKKAT: password alanı bellekte saklanır ama hiçbir yanıtta dönmemeli.
 // Bunu nerede çözeceğiniz size kalmış — service'te "password'süz kopya"
 // döndürmek de, controller'da ayıklamak da kabul edilir.
+
+const users = []
+
+/**
+ * Add new user to the users list
+ * @param {string} username
+ * @param {string} email
+ * @param {string} password
+ * @returns the user objects
+ */
+export const addUser = (username, email, password) => {
+  const user = {
+    id: crypto.randomUUID(),
+    username,
+    email,
+    password,
+    createdAt : new Date()
+  }
+  users.push(user)
+  return user
+}
+
+/**
+ * @returns all users
+ */
+export const getUsers = () => {
+  return users;
+}
+
+/**
+ * Returns user record with given id if exists
+ * @param {uuid} id
+ * @returns user object or undefined if not found
+ */
+export const getUserById = (id) => {
+  return users.find((u) => u.id === id);
+}
+
+/**
+ * Finds user with given email
+ * @param {string} email
+ * @returns user or undefined if not found
+ */
+export const getUserByEmail = (email) => {
+  return users.find((u) => u.email === email)
+}

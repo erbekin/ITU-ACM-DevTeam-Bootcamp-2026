@@ -1,14 +1,24 @@
+import { T } from '../../utils/typeCheckClass.js'
+import StorageKeys from './todos.storage-keys.js'
+import { getUserById } from "../users/users.service.js";
+
 export const validateAddTodo = (req, res, next) => {
-  const { title, description } = req.body;
-  if (
-    !title ||
-    !description ||
-    typeof title !== "string" ||
-    typeof description !== "string"
-  ) {
-    return res.status(400).json({
-      error: "Title and description are required and must be strings",
-    });
+  const typeLayout = T.Object({
+    title: T.String,
+    description: T.String,
+    userId: T.Optional(T.String),
+  })
+  const result = typeLayout.check(req.body);
+
+  if (!result.ok) {
+    res.status(400).json({ error: result.error.message });
+    return
+  }
+  const value = result.ok;
+  if (value.userId) {
+    if (getUserById(value.userId) === undefined) {
+      return res.status(400).json({ error: "User not found" });
+    }
   }
   next();
 };
@@ -22,4 +32,46 @@ export const validateAddTodo = (req, res, next) => {
 //                                gönderilen alanların tipi doğru olmalı.
 //
 // Hatırlatma: hata durumunda next() ÇAĞIRMAYIN — zinciri 400 ile kesin.
-// Ve res.status(400).json(...) satırının başına return koymayı unutmayın.
+// Ve res.status(400).json(...) satırının başına   return koymayı unutmayın.
+
+export const validateReplaceTodo = (req, res, next) => {
+  let typeLayout = T.Object({
+    title: T.String,
+    description: T.String,
+    completed: T.Boolean
+  });
+  const data = typeLayout.check(req.body)
+  if (!data.ok) {
+    res.status(400).json({
+      error: data.error.message,
+    });
+    return
+  }
+  next()
+}
+
+
+
+export const validateUpdateTodo = (req, res, next) => {
+  let typeLayout = T.Object({
+    title: T.Optional(T.String),
+    description: T.Optional(T.String),
+    completed: T.Optional(T.Boolean)
+  });
+  const result = typeLayout.check(req.body)
+  if (!result.ok) {
+    res.status(400).json({
+      error: result.error.message,
+    })
+    return
+  }
+  const data = result.ok;
+  // at least one property required
+  if (!data.title && !data.description && !data.completed) {
+    return res.status(400).json({
+      error: "At least one field required",
+    })
+  }
+  req.storage.set(StorageKeys.UPDATE_TODO_PACKET, data);
+  next()
+}
