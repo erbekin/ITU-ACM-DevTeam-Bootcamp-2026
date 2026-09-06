@@ -11,7 +11,7 @@ export const validateAddTodo = (req, res, next) => {
   const result = typeLayout.check(req.body);
 
   if (!result.ok) {
-    res.status(400).json({ error: result.error.message });
+    res.status(400).json({ error: result.error.message, schemeTrace : result.error.trace });
     return
   }
   const value = result.ok;

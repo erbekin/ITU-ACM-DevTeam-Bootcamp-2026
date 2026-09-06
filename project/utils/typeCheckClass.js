@@ -43,7 +43,7 @@ class ObjectChecker {
   }
   check(val, ctx) {
     if (typeof val !== "object" || val === null) {
-      return { error: new Error(`expected a value of type 'object' but found type ${typeof val}`) };
+      return { error: new Error(`expected a value of type 'object' but found type '${typeof val}'`) };
     }
     for (let { key, checker } of this.types) {
       ctx.objectFields.push(key);
@@ -52,7 +52,7 @@ class ObjectChecker {
       if ("error" in result) {
         if (!ctx.traceDumped) {
           // console.log("objecttrace: ", ctx.objectFields.join("."));
-          result.error.message += `\nObject Trace: ${ctx.objectFields.join(".")}`;
+          result.error.trace = ctx.objectFields.join(".");
           ctx.traceDumped = true;
         }
         return result;
@@ -70,7 +70,7 @@ class PrimitiveChecker {
   check(val, ctx) {
     if (typeof val !== this.type) {
       return {
-        error: new Error(`expected a value of type '${this.type}' but found type ${typeof val}`),
+        error: new Error(`expected a value of type '${this.type}' but found type '${typeof val}'`),
       };
     }
     return { ok: val };
