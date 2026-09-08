@@ -2,7 +2,7 @@ import { T } from '../../utils/typeCheckClass.js'
 import StorageKeys from './todos.storage-keys.js'
 import { getUserById } from "../users/users.service.js";
 
-export const validateAddTodo = (req, res, next) => {
+export const validateAddTodo = async (req, res, next) => {
   const typeLayout = T.Object({
     title: T.String,
     description: T.String,
@@ -16,7 +16,7 @@ export const validateAddTodo = (req, res, next) => {
   }
   const value = result.ok;
   if (value.userId) {
-    if (getUserById(value.userId) === undefined) {
+    if (await getUserById(value.userId) === undefined) {
       return res.status(400).json({ error: "User not found" });
     }
   }

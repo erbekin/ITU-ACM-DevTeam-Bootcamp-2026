@@ -13,7 +13,7 @@
 
 import {T} from '../../utils/typeCheckClass.js'
 
-export const validateAddUser = (req, res, next) => {
+export const validateAddUser = async (req, res, next) => {
   const typeLayout = T.Object({
     username: T.String,
     email: T.String,

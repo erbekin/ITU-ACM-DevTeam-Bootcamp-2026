@@ -1,21 +1,31 @@
 import { getTodos, addTodo, getTodoById, replaceTodo, updateTodo, deleteTodo } from "./todos.service.js";
 import { TodoNotFound } from "./todos.errors.js"
 import StorageKeys from "./todos.storage-keys.js"
+import { getUserById } from "../users/users.service.js";
+import Fun from "../../utils/fun.js";
 
-export const getTodosController = (req, res) => {
+
+export const getTodosController = async (req, res) => {
   const { completed, q } = req.query;
-  res.json(getTodos({ completed, q }));
+  res.json(await getTodos({ completed, q }));
 };
 
-export const addTodoController = (req, res) => {
-  const { title, description, userId} = req.body;
-  const todo = addTodo(title, description, userId);
+export const addTodoController = async (req, res) => {
+  const { title, description, userId } = req.body;
+  if (Fun.isSome(userId) && Fun.isNil(await getUserById(userId))) {
+    res.status(400).json({
+      error: "User not found",
+      userId,
+    })
+    return;
+  }
+  const todo = await addTodo(title, description, userId);
   res.status(201).json(todo);
 };
 
-export const getTodoByIdController = (req, res) => {
+export const getTodoByIdController = async (req, res) => {
   const { id } = req.params;
-  const todo = getTodoById(id);
+  const todo = await getTodoById(id);
   if (!todo) {
     return res.status(404).json({ error: "Todo not found" });
   }
@@ -28,13 +38,12 @@ export const getTodoByIdController = (req, res) => {
 // Hatırlatma: controller HTTP'yi bilir — req'ten okur, status kodunu seçer,
 // yanıtı yazar. İş kuralları service katmanında kalmalı.
 
-export const replaceTodoController = (req, res) => {
+export const replaceTodoController = async (req, res) => {
   const { id } = req.params;
   const { title, description, completed } = req.body;
   let todo = null
   try {
-    todo = replaceTodo(id, { title, description, completed });
-
+    todo = await replaceTodo(id, { title, description, completed });
   } catch (err) {
     if (err instanceof TodoNotFound) {
       return res.status(404).json({error: err.message})
@@ -45,12 +54,12 @@ export const replaceTodoController = (req, res) => {
 }
 
 
-export const updateTodoController = (req, res) => {
+export const updateTodoController = async (req, res) => {
   const { id } = req.params;
   const { title, description, completed } = req.storage.get(StorageKeys.UPDATE_TODO_PACKET);
   let todo = null
   try {
-   todo = updateTodo(id, { title, description, completed });
+   todo = await updateTodo(id, { title, description, completed });
   } catch (err) {
     if (err instanceof TodoNotFound) {
       return res.status(404).json({err: err.message})
@@ -60,10 +69,10 @@ export const updateTodoController = (req, res) => {
   res.json(todo)
 }
 
-export const deleteTodoController = (req, res) => {
+export const deleteTodoController = async (req, res) => {
   const { id } = req.params;
   try {
-    deleteTodo(id);
+    await deleteTodo(id);
   } catch (err) {
     if (err instanceof TodoNotFound) {
       return res.status(404).json({err: err.message})

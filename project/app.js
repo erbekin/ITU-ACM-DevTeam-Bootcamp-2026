@@ -3,10 +3,10 @@ import todosRouter from "./modules/todos/todos.router.js";
 import usersRouter from "./modules/users/users.router.js";
 import notFoundHandler from "./utils/notFoundHandler.js";
 import globalErrorHandler from "./utils/globalErrorHandler.js";
-import loadDotEnv from "./utils/loadDotEnv.js"
+// import loadDotEnv from "./utils/loadDotEnv.js"
 
 // Load from .env
-loadDotEnv()
+// loadDotEnv()
 
 const server = express();
 

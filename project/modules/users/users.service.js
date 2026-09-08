@@ -17,48 +17,52 @@
 // Bunu nerede çözeceğiniz size kalmış — service'te "password'süz kopya"
 // döndürmek de, controller'da ayıklamak da kabul edilir.
 
-const users = []
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
+import * as UserDb from "./users.db.js";
+import { ConflictError } from "./users.error.js";
 
 /**
  * Add new user to the users list
  * @param {string} username
  * @param {string} email
  * @param {string} password
- * @returns the user objects
+ * @returns the user object
  */
-export const addUser = (username, email, password) => {
-  const user = {
-    id: crypto.randomUUID(),
+export const addUser = async (username, email, password) => {
+  return await UserDb.create({
     username,
     email,
     password,
-    createdAt : new Date()
-  }
-  users.push(user)
-  return user
-}
+  });
+};
 
 /**
  * @returns all users
  */
-export const getUsers = () => {
-  return users;
-}
+export const getUsers = async () => {
+  return await UserDb.selectManyPublic();
+};
 
 /**
  * Returns user record with given id if exists
  * @param {uuid} id
- * @returns user object or undefined if not found
+ * @returns user object or null if not found
  */
-export const getUserById = (id) => {
-  return users.find((u) => u.id === id);
-}
+export const getUserById = async (id) => {
+  return await UserDb.selectOnePublic({
+    kind: "id",
+    value: id,
+  });
+};
 
 /**
  * Finds user with given email
  * @param {string} email
- * @returns user or undefined if not found
+ * @returns user or null if not found
  */
-export const getUserByEmail = (email) => {
-  return users.find((u) => u.email === email)
-}
+export const getUserByEmail = async (email) => {
+  return await UserDb.selectOnePublic({
+    kind: "email",
+    value: email,
+  });
+};

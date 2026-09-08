@@ -8,6 +8,7 @@
     "start": "node --env-file=.env index.js",
     "dev": "node --env-file=.env --watch index.js",
     "test": "node --env-file=.env.test --test --test-concurrency=1 \"tests/**/*.test.js\"",
+    "test:single" : "node --env-file=.env.test --test --test-concurrency=1",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio"
   },

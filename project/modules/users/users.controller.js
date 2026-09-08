@@ -15,35 +15,37 @@
 
 import { addUser, getUserByEmail, getUsers, getUserById } from "./users.service.js";
 import { getTodosByUserId } from "../todos/todos.service.js";
+import Fun from "../../utils/fun.js";
+import { ConflictError } from "./users.error.js";
 
-export const addUserController = (req, res) => {
+export const addUserController = async (req, res) => {
   const { username, email, password } = req.body;
-  if (getUserByEmail(email)) {
-    // email already registered
-    res.status(409).json({ error: `email ${email} is already registered` });
-    return
+  try {
+    const user = await addUser(username, email, password);
+    res.status(201).json(user);
+  } catch (e) {
+    if (e instanceof ConflictError) {
+      res.status(409).json({
+        error: e.message,
+        detail: e.field ?? null,
+      });
+      return;
+    }
+    throw e;
   }
-  const { id } = addUser(username, email, password);
-  res.status(201).json({
-    id,
-    username,
-    email
-  })
-}
+};
 
-export const getUsersController = (req, res) => {
-  const users = getUsers().map(({ id, username, email, createdAt }) => {
-    return {id, username, email, createdAt}
-  })
-  res.json(users)
-}
+export const getUsersController = async (req, res) => {
+  const users = await getUsers();
+  res.json(users);
+};
 
-export const getUserTodosController = (req, res) => {
+export const getUserTodosController = async (req, res) => {
   const { id } = req.params;
-  if (!getUserById(id)) {
+  if (!(await getUserById(id))) {
     res.status(404).json({ error: "user not found" });
-    return
+    return;
   }
-  const todos = getTodosByUserId(id);
-  res.json(todos)
-}
+  const todos = await getTodosByUserId(id);
+  res.json(todos);
+};
