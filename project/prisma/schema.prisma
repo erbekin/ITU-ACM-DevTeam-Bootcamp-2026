@@ -59,7 +59,7 @@
   }
 
   model Tag {
-    id   Int    @id @default(autoincrement())
+    id   String    @id @default(uuid()) @db.Uuid
     name String @unique
 
     todoTags TodoTag[]
@@ -68,7 +68,7 @@
 
   model TodoTag {
     todoId String @map("todo_id") @db.Uuid
-    tagId  Int    @map("tag_id")
+    tagId  String    @map("tag_id") @db.Uuid
 
     tag Tag @relation(fields: [tagId], references: [id])
     todo Todo @relation(fields: [todoId], references: [id], onDelete: Cascade)

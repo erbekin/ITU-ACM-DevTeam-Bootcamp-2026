@@ -1,6 +1,6 @@
 import { addUser, getUserByEmail, getUsers, getUserById ,getProfile, createOrUpdateProfile} from "./users.service.js";
 import { getTodosByUserId} from "../todos/todos.service.js";
-import { ConflictError } from "./users.error.js";
+import { ConflictError } from "../errors.js";
 import Fun from "../../utils/fun.js";
 
 export const addUserController = async (req, res) => {

@@ -1,6 +1,6 @@
 import prisma from "../../db/prisma.js";
 import { handleKnownRequestError } from "../../db/utils.js";
-import { ConflictError } from "./users.error.js";
+import { ConflictError } from "../errors.js";
 
 /**
  * @typedef User
@@ -39,21 +39,26 @@ Object.freeze(PUBLIC_USER_SELECT);
  */
 export const create = async (userData) => {
   // handle unique violation
-  return handleKnownRequestError("P2002", async () => {
-    return await prisma.user.create({
-      data: {
-        username: userData.username,
-        email: userData.email,
-        password: userData.password,
-      },
-      select: PUBLIC_USER_SELECT,
-    })
-  }, (err) => {
-
-    throw new ConflictError(err?.message, "email or username already taken")
-  })
-
-}
+  return handleKnownRequestError(
+    "P2002",
+    async () => {
+      return await prisma.user.create({
+        data: {
+          username: userData.username,
+          email: userData.email,
+          password: userData.password,
+        },
+        select: PUBLIC_USER_SELECT,
+      });
+    },
+    (err) => {
+      throw new ConflictError("email or username already taken", {
+        meta: err?.meta,
+        internalMessage: err?.message,
+      });
+    },
+  );
+};
 
 /**
  * @returns {Promise<PublicUser[]>}- All users as an array
@@ -62,7 +67,7 @@ export const selectManyPublic = async () => {
   return await prisma.user.findMany({
     select: PUBLIC_USER_SELECT,
   });
-}
+};
 
 /**
  * @typedef UserSelectArg
@@ -78,14 +83,14 @@ export const selectManyPublic = async () => {
 export const selectOnePublic = async (arg) => {
   const { kind, value } = arg;
   const condition = () => {
-    if (kind === 'id') {
+    if (kind === "id") {
       return {
         id: value,
-      }
+      };
     } else if (kind === "email") {
       return {
-        email: value
-      }
+        email: value,
+      };
     } else {
       // just in case
       throw new TypeError("kind must be one of: 'id', 'email'");
@@ -94,9 +99,8 @@ export const selectOnePublic = async (arg) => {
   return await prisma.user.findUnique({
     where: condition(),
     select: PUBLIC_USER_SELECT,
-  })
-}
-
+  });
+};
 
 /**
  * @typedef PublicProfile
@@ -114,10 +118,10 @@ export const selectProfile = async (userId) => {
       userId,
     },
     select: {
-      bio:true,
-    }
-  })
-}
+      bio: true,
+    },
+  });
+};
 
 /**
  * @typedef ProfileArgs
@@ -132,6 +136,6 @@ export const upsertProfile = async (args) => {
     where: { userId: args.userId },
     update: { bio: args.bio },
     create: { userId: args.userId, bio: args.bio },
-    select: {id: true, bio: true, userId: true }
-  })
-}
+    select: { id: true, bio: true, userId: true },
+  });
+};

@@ -1,6 +1,6 @@
+import Fun from '../../utils/fun.js';
 import { T } from '../../utils/typeCheckClass.js'
 import StorageKeys from './todos.storage-keys.js'
-
 
 export const validateGetTodoQuery = (req, res, next) => {
   const query = req.query;
@@ -70,6 +70,27 @@ export const validateUpdateTodo = (req, res, next) => {
       error: "At least one field required",
     })
   }
+  // priority is integer
+  if (Fun.isSome(data.priority) && !Number.isInteger(data.priority)) {
+    return res.status(400).json({
+      error: "the property 'priority' must be integer"
+    })
+  }
   req.storage.set(StorageKeys.UPDATE_TODO_PACKET, data);
+  next()
+}
+
+export const validateAddTag = (req, res, next) => {
+  if (!req.is('json')) {
+    res.status(400).json({ error: "expected json body" });
+    return;
+  }
+  const result = T.Object({
+    tagId: T.String,
+  }).check(req.body);
+  if (!result.ok) {
+    res.status(404).json({ error: result.error.message });
+    return;
+  }
   next()
 }
