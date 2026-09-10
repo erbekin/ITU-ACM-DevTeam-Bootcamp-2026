@@ -14,6 +14,7 @@ const server = express();
 // initialize storage
 server.use((req, res, next) => {
   req.storage = new Map();
+  res.storage = req.storage;
   next()
 })
 server.use(express.json());

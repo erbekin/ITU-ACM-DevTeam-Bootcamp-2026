@@ -1,12 +1,26 @@
 import { T } from '../../utils/typeCheckClass.js'
 import StorageKeys from './todos.storage-keys.js'
-import { getUserById } from "../users/users.service.js";
+
+
+export const validateGetTodoQuery = (req, res, next) => {
+  const query = req.query;
+  const packet = {};
+  if (typeof query.completed === 'string') {
+    packet.completed = query.completed === 'true';
+  }
+  if (typeof query.q === 'string') {
+    packet.q = query.q;
+  }
+  req.storage.set(StorageKeys.GET_TODO_QUERY_PACKET, packet)
+  next()
+}
 
 export const validateAddTodo = async (req, res, next) => {
   const typeLayout = T.Object({
     title: T.String,
     description: T.String,
     userId: T.Optional(T.String),
+    priority : T.Optional(T.Number),
   })
   const result = typeLayout.check(req.body);
 
@@ -14,25 +28,8 @@ export const validateAddTodo = async (req, res, next) => {
     res.status(400).json({ error: result.error.message, schemeTrace : result.error.trace });
     return
   }
-  const value = result.ok;
-  if (value.userId) {
-    if (await getUserById(value.userId) === undefined) {
-      return res.status(400).json({ error: "User not found" });
-    }
-  }
   next();
 };
-
-// TODO (Aşama 1): validateReplaceTodo ve validateUpdateTodo middleware'lerini
-// ekleyin.
-//
-//   validateReplaceTodo (PUT)  → title, description ve completed'ın üçü de
-//                                zorunlu ve doğru tipte olmalı.
-//   validateUpdateTodo (PATCH) → en az bir geçerli alan gönderilmiş olmalı;
-//                                gönderilen alanların tipi doğru olmalı.
-//
-// Hatırlatma: hata durumunda next() ÇAĞIRMAYIN — zinciri 400 ile kesin.
-// Ve res.status(400).json(...) satırının başına   return koymayı unutmayın.
 
 export const validateReplaceTodo = (req, res, next) => {
   let typeLayout = T.Object({
@@ -56,7 +53,8 @@ export const validateUpdateTodo = (req, res, next) => {
   let typeLayout = T.Object({
     title: T.Optional(T.String),
     description: T.Optional(T.String),
-    completed: T.Optional(T.Boolean)
+    completed: T.Optional(T.Boolean),
+    priority: T.Optional(T.Number),
   });
   const result = typeLayout.check(req.body)
   if (!result.ok) {
@@ -67,7 +65,7 @@ export const validateUpdateTodo = (req, res, next) => {
   }
   const data = result.ok;
   // at least one property required
-  if (!data.title && !data.description && !data.completed) {
+  if (!data.title && !data.description && !data.completed && !data.priority) {
     return res.status(400).json({
       error: "At least one field required",
     })

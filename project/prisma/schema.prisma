@@ -38,6 +38,7 @@
     completed   Boolean  @default(false)
     userId      String?  @map("user_id") @db.Uuid
     createdAt   DateTime @default(now()) @map("created_at")
+    priority Int @db.SmallInt @default(0)
 
     user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
     todoTags TodoTag[]

@@ -6,12 +6,13 @@ import Fun from "../../utils/fun.js";
 
 
 export const getTodosController = async (req, res) => {
-  const { completed, q } = req.query;
+  const { completed, q } = req.storage.get(StorageKeys.GET_TODO_QUERY_PACKET);
+  res.header('X-Query', `completed:${typeof completed}, q:${typeof q}`);
   res.json(await getTodos({ completed, q }));
 };
 
 export const addTodoController = async (req, res) => {
-  const { title, description, userId } = req.body;
+  const { title, description, userId, priority } = req.body;
   if (Fun.isSome(userId) && Fun.isNil(await getUserById(userId))) {
     res.status(400).json({
       error: "User not found",
@@ -19,7 +20,7 @@ export const addTodoController = async (req, res) => {
     })
     return;
   }
-  const todo = await addTodo(title, description, userId);
+  const todo = await addTodo({title, description, userId, priority});
   res.status(201).json(todo);
 };
 
@@ -56,10 +57,10 @@ export const replaceTodoController = async (req, res) => {
 
 export const updateTodoController = async (req, res) => {
   const { id } = req.params;
-  const { title, description, completed } = req.storage.get(StorageKeys.UPDATE_TODO_PACKET);
+  const { title, description, completed, priority } = req.storage.get(StorageKeys.UPDATE_TODO_PACKET);
   let todo = null
   try {
-   todo = await updateTodo(id, { title, description, completed });
+   todo = await updateTodo(id, { title, description, completed, priority });
   } catch (err) {
     if (err instanceof TodoNotFound) {
       return res.status(404).json({err: err.message})

@@ -15,13 +15,14 @@ import Fun from "../../utils/fun.js"
  * @property {string} title - Title of the todo
  * @property {string} description - Description of the todo
  * @property {boolean} completed - Completion status of the todo
+ * @property {number} priority - priority of todo, defaults 0
  * @property {(?string)} [userId] - UUID of the user who owns the todo
  * @property {Date} createdAt - Creation timestamp
  */
 
  /**
   * Creates new todo
-  * @param {{title:string, description:string, userId:string}} - todo create data
+  * @param {{title:string, description:string, userId:string, priority?:number}} todoData - todo create data
   * @return {Promise<Todo>} newly created object
   */
 export const create = async (todoData) => {
@@ -29,7 +30,13 @@ export const create = async (todoData) => {
     data: {
       title: todoData.title,
       description: todoData.description,
-      userId: todoData.userId
+      userId: todoData.userId,
+      // The trick: if priority exists in
+      // tododata priority: todoData.priority is added to prisma data argument
+      // otherwise, nothing added.
+      ...Fun.Maybe(todoData.priority)
+        .map((p) => ({priority: p}))
+        .take()
     },
   })
 }
@@ -53,11 +60,11 @@ export const selectMany = async(filters) => {
       ],
     };
   };
+
   let res = await prisma.todo.findMany({
     where: {
       ...or(),
-      // spreading null adds nothing
-      ...completed == Fun.Maybe(completed).map((completed) => ({completed})).unwrapOr(null),
+      ...Fun.Maybe(completed).map((completed) => ({ completed })).take(),
     },
     orderBy: {
       createdAt: "asc",
@@ -73,13 +80,8 @@ export const selectMany = async(filters) => {
  */
 export const selectManyOfUser = async (userId) => {
   return await prisma.todo.findMany({
-    include: {
-      user: true,
-    },
     where: {
-      user: {
-        id: userId
-      }
+      userId,
     },
     orderBy: {
       createdAt: 'asc'
@@ -109,18 +111,24 @@ export const selectOne = async (id) => {
  * @prop {string} [title]
  * @prop {string} [description]
  * @prop {boolean} [completed]
+ * @prop {number} [priority]
+ *
  * Updates todo with given values.
  * @param {TodoUpdateOptions} options
  * @returns {Promise<?Todo>} the todo which was updated or null
  */
 export const updateOne = async (options) => {
+  const makeField = (field) => {
+    return Fun.Maybe(options[field]).map((t) => ({ [field]: t })).take()
+  }
   return await handleKnownRequestError('P2025', async () => {
     return await prisma.todo.update({
       data: {
         id: options.id,
-        ...Fun.Maybe(options.title).map((t) => ({ title: t })).unwrapOr(null),
-        ...Fun.Maybe(options.description).map((t) => ({ description: t })).unwrapOr(null),
-        ...Fun.Maybe(options.completed).map((t) => ({ completed: t })).unwrapOr(null)
+        ...makeField('title'),
+        ...makeField('description'),
+        ...makeField('completed'),
+        ...makeField('priority'),
       },
       where: {
         id: options.id

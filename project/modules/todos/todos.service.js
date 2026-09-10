@@ -5,9 +5,19 @@ import Fun from "../../utils/fun.js";
  * @typedef {import("./todos.db.js").SelectTodoFilter} SelectTodoFilter
  */
 
-
-export const addTodo = async (title, description, userId) => {
-  return await TodoDb.create({ title, description, userId });
+ /**
+  *@typedef AddTodoParams
+  * @type {object}
+  * @prop {string} title
+  * @prop {string} description
+  * @prop {string} userId - uuid of user
+  * @prop {number} [priority] - priority of todo, default it 0
+  *
+  * @param {AddTodoParams} params
+  * @returns
+  */
+export const addTodo = async (params) => {
+  return await TodoDb.create(params);
 };
 
 

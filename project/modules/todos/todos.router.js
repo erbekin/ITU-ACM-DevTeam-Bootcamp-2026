@@ -7,11 +7,11 @@ import {
   replaceTodoController,
   updateTodoController,
 } from "./todos.controller.js";
-import { validateAddTodo, validateReplaceTodo, validateUpdateTodo } from "./todos.validator.js";
+import { validateAddTodo, validateReplaceTodo, validateUpdateTodo, validateGetTodoQuery } from "./todos.validator.js";
 
 const r = express.Router();
 
-r.get("/", getTodosController);
+r.get("/", validateGetTodoQuery, getTodosController);
 
 r.post("/", validateAddTodo, addTodoController);
 
