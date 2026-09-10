@@ -1,4 +1,5 @@
 import Fun from '../../utils/fun.js';
+import { isUuidV4 } from '../../utils/is-uuid.js';
 import { T } from '../../utils/typeCheckClass.js'
 import StorageKeys from './todos.storage-keys.js'
 
@@ -92,5 +93,10 @@ export const validateAddTag = (req, res, next) => {
     res.status(404).json({ error: result.error.message });
     return;
   }
+  if (!isUuidV4(result.ok.tagId)) {
+    res.status(400).json({ error: "invalid id format" });
+    return;
+  }
+
   next()
 }
