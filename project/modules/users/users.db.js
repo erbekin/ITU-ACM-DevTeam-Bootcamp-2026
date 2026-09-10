@@ -50,7 +50,7 @@ export const create = async (userData) => {
     })
   }, (err) => {
 
-    throw new ConflictError(err?.meta, "Unique field violation")
+    throw new ConflictError(err?.message, "email or username already taken")
   })
 
 }
@@ -94,5 +94,44 @@ export const selectOnePublic = async (arg) => {
   return await prisma.user.findUnique({
     where: condition(),
     select: PUBLIC_USER_SELECT,
+  })
+}
+
+
+/**
+ * @typedef PublicProfile
+ * @type {object}
+ * @prop {string} userId - id of user this profile belongs
+ * @prop {string} bio - description of profile
+ *
+ * Selects related profile of given user
+ * @param {string} userId - uuid of user
+ * @return {Promise<?PublicProfile>} profile of user or null
+ */
+export const selectProfile = async (userId) => {
+  return await prisma.profile.findUnique({
+    where: {
+      userId,
+    },
+    select: {
+      bio:true,
+    }
+  })
+}
+
+/**
+ * @typedef ProfileArgs
+ * @type {object}
+ * @prop {string} userId - uuid of user
+ * @prop {string} bio - bio of user
+ *  Create or update profile
+ * @param {ProfileArgs} args
+ */
+export const upsertProfile = async (args) => {
+  return await prisma.profile.upsert({
+    where: { userId: args.userId },
+    update: { bio: args.bio },
+    create: { userId: args.userId, bio: args.bio },
+    select: {id: true, bio: true, userId: true }
   })
 }

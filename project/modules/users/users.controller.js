@@ -1,22 +1,7 @@
-// Aşama 2 — users modülünün CONTROLLER katmanı.
-//
-// Yazmanız gerekenler:
-//
-//   addUserController        → 201 + { id, username, email }   (password YOK)
-//                              e-posta zaten kayıtlıysa 409
-//   getUsersController       → 200 + kullanıcı listesi          (password YOK)
-//   getUserTodosController   → 200 + o kullanıcının todoları
-//                              kullanıcı yoksa 404
-//
-// Aşama 3 notu: getUserTodosController'ın todoları bulabilmesi için
-// todos modülünün SERVICE katmanını çağırması gerekir. Derste konuştuğumuz
-// altın kural: başka modülün service'ini çağırabilirsin, iç dosyalarına
-// (db, controller, validator) dokunamazsın.
-
-import { addUser, getUserByEmail, getUsers, getUserById } from "./users.service.js";
-import { getTodosByUserId } from "../todos/todos.service.js";
-import Fun from "../../utils/fun.js";
+import { addUser, getUserByEmail, getUsers, getUserById ,getProfile, createOrUpdateProfile} from "./users.service.js";
+import { getTodosByUserId} from "../todos/todos.service.js";
 import { ConflictError } from "./users.error.js";
+import Fun from "../../utils/fun.js";
 
 export const addUserController = async (req, res) => {
   const { username, email, password } = req.body;
@@ -49,3 +34,30 @@ export const getUserTodosController = async (req, res) => {
   const todos = await getTodosByUserId(id);
   res.json(todos);
 };
+
+export const getProfileController = async (req, res) => {
+  const { id } = req.params;
+  const profile = await getProfile(id);
+  if (Fun.isNil(profile)) {
+    res.status(404).json({
+      error: "no profile found for user",
+      userId : id
+    })
+    return;
+  }
+  res.json(profile);
+}
+
+export const putProfileController = async (req, res) => {
+  const { id } = req.params;
+  if (Fun.isNil(await getUserById(id))) {
+    res.status(404).json({ error: `user with id ${id} not found` })
+    return;
+  }
+  const {bio} = req.body;
+  const r = await createOrUpdateProfile({
+    userId: id,
+    bio
+  });
+  res.json(r)
+}

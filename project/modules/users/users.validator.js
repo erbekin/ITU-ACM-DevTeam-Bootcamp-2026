@@ -11,13 +11,13 @@
 // bir iş kuralıdır — ve 400 değil 409 döner. Onu service/controller
 // tarafında çözmek daha doğru.
 
-import {T} from '../../utils/typeCheckClass.js'
+import { T } from "../../utils/typeCheckClass.js";
 
 export const validateAddUser = async (req, res, next) => {
   const typeLayout = T.Object({
     username: T.String,
     email: T.String,
-    password: T.String
+    password: T.String,
   });
   const result = typeLayout.check(req.body);
   // break the chain
@@ -27,9 +27,35 @@ export const validateAddUser = async (req, res, next) => {
   }
   const val = result.ok;
   // '@' check
-  if (!val.email.includes('@')) {
+  if (!val.email.includes("@")) {
     res.status(400).json({ error: "email must contain '@'" });
     return;
   }
-  next()
-}
+  next();
+};
+
+export const validateProfile = (req, res, next) => {
+  const isJson = req.is("json");
+  if (!isJson) {
+    res.status(400).json({ error: "expected json body" });
+    return;
+  }
+  const scheme = T.Object({
+    bio: T.String,
+  });
+  const result = scheme.check(req.body);
+  if (!result.ok) {
+    res
+      .status(400)
+      .json({
+        error: "expected 'bio' property of type 'string'",
+        detail: { message: result.error.message, trace: result.error.trace },
+      });
+    return;
+  }
+  if (result.ok.bio.trim() === '') {
+    res.status(400).json({ error: "property 'bio' must not be empty" });
+    return;
+  }
+  next();
+};

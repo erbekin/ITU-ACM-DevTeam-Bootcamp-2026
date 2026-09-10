@@ -17,9 +17,7 @@
 // Bunu nerede çözeceğiniz size kalmış — service'te "password'süz kopya"
 // döndürmek de, controller'da ayıklamak da kabul edilir.
 
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/client";
 import * as UserDb from "./users.db.js";
-import { ConflictError } from "./users.error.js";
 
 /**
  * Add new user to the users list
@@ -66,3 +64,20 @@ export const getUserByEmail = async (email) => {
     value: email,
   });
 };
+
+/**
+ * Get profile of user
+ * @param {string} userId - id of user
+ * @returns profile or null
+ */
+export const getProfile = async (userId) => {
+  return await UserDb.selectProfile(userId);
+}
+
+/**
+ * @param {string} userId - uuid of user
+ * @param {UserDb.ProfileArgs} args
+ */
+export const createOrUpdateProfile = async (args) => {
+  return await UserDb.upsertProfile(args);
+}
