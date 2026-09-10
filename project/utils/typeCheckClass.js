@@ -43,7 +43,8 @@ class ObjectChecker {
   }
   check(val, ctx) {
     if (typeof val !== "object" || val === null) {
-      return { error: new Error(`expected a value of type 'object' but found type '${typeof val}'`) };
+      const t = val === null ? "value 'null'" : `type '${typeof val}'`;
+      return { error: new Error(`expected a value of type 'object' but found type ${t}`) };
     }
     for (let { key, checker } of this.types) {
       ctx.objectFields.push(key);
@@ -54,6 +55,7 @@ class ObjectChecker {
           // console.log("objecttrace: ", ctx.objectFields.join("."));
           result.error.trace = ctx.objectFields.join(".");
           ctx.traceDumped = true;
+          result.error.message += ` for property '${ctx.objectFields[ctx.objectFields.length - 1]}'`;
         }
         return result;
       }
@@ -89,19 +91,3 @@ class OptionalChecker {
     return this.innerType.check(val, ctx);
   }
 }
-
-// let nested = T.Object({
-//   a: T.Object({
-//     b: T.Object({
-//       c : T.String
-//     })
-//   })
-// })
-
-// console.log(nested.check({
-//   a: {
-//     b: {
-//       c: 5
-//     }
-//   }
-// }));

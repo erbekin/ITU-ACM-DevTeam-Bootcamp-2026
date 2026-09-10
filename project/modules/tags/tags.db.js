@@ -11,6 +11,14 @@ import { ConflictError, NotFoundError } from "../errors.js";
  */
 
 /**
+ * Represents a tag associated with a todo.
+ * @typedef TagTodo
+ * @type {object}
+ * @prop {string} todoId - id of todo
+ * @prop {string} tagId - id of tag
+ */
+
+/**
  * @typedef CreateArgs
  * @type {object}
  * @prop {string} name - name of tag
@@ -50,7 +58,7 @@ export const selectAll = async () => {
  * @param {TagTodoArgs} args
  * @throws {ConflictError} if todo already tagged (P2002)
  * @throws {NotFoundError} if todo or tag doesnt exist (P2003)
- * @returns {Promise<{todoId:string, tagId:string}>} an object containing ids of todo and tag on success
+ * @returns {Promise<TagTodo>} an object containing ids of todo and tag on success
  */
 export const tagTodo = async (args) => {
   return await handleKnownRequestError(['P2002', 'P2003'], async () => {
