@@ -12,7 +12,6 @@ export const addUserController = async (req, res) => {
     if (e instanceof ConflictError) {
       res.status(409).json({
         error: e.message,
-        detail: e.field ?? null,
       });
       return;
     }
